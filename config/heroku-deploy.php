@@ -12,37 +12,18 @@ return [
      */
     // Outputs data to your laravel.log file for debugging
     'debug' => false,
-    // Define the email address field name in the users table
-    'email_field' => 'email',
-    // The URI to your login page
-    'login_uri' => 'login',
-    // Log out of the IdP after SLO
-    'logout_after_slo' => env('LOGOUT_AFTER_SLO', false),
-    // The URI to the saml metadata file, this describes your idP
-    'issuer_uri' => 'saml/metadata',
-    // Name of the certificate PEM file
-    'certname' => 'cert.pem',
-    // Name of the certificate key PEM file
-    'keyname' => 'key.pem',
-    // Encrypt requests and reponses
-    'encrypt_assertion' => true,
-    // Make sure messages are signed
-    'messages_signed' => true,
-    // list of all service providers
-    'sp' => [
-        // Base64 encoded ACS URL
-        // 'aHR0cHM6Ly9teWZhY2Vib29rd29ya3BsYWNlLmZhY2Vib29rLmNvbS93b3JrL3NhbWwucGhw' => [
-        //     // Your destination is the ACS URL of the Service Provider
-        //     'destination' => 'https://myfacebookworkplace.facebook.com/work/saml.php',
-        //     'logout' => 'https://myfacebookworkplace.facebook.com/work/sls.php',
-        //     'certificate' => '',
-        //     'query_params' => false
-        // ]
-    ],
-
-    // If you need to redirect after SLO depending on SLO initiator
-    // key is beginning of HTTP_REFERER value from SERVER, value is redirect path
-    'sp_slo_redirects' => [
-        // 'https://example.com' => 'https://example.com',
-    ]
+    // Heroku Platform API token, learn more here:
+    // https://devcenter.heroku.com/articles/authentication
+    'heroku_token' => env('HEROKU_DEPLOY_HEROKU_TOKEN', null),
+    // Cloudflare token, get yours here:
+    // https://dash.cloudflare.com/profile/api-tokens
+    'cloudflare_token' => env('HEROKU_DEPLOY_CLOUDFLARE_TOKEN', null),
+    // JSON array containing information on your zones you want to use for this project
+    'cloudflare_zones' => env('HEROKU_DEPLOY_ZONES', []),
+    // You can attach addons from other applications
+    // {
+    //      'addon_id': 'confirming_app (id or name)',
+    //      '07a200a0-f00e-466a-8981-aaae418cad8f': 'mentors-account-api-staging'
+    // }
+    'heroku_addon_attachments' => env('HEROKU_DEPLOY_ADDON_ATTACHMENTS', [])
 ];

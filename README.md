@@ -10,7 +10,7 @@ This package allows you to configure your Heroku Review Apps instance for Larave
 Require this package with composer:
 
 ```shell
-composer require codegreencreative/laravel-heroku-deploy:^1.0
+composer require codegreencreative/laravel-heroku-deploy
 ```
 
 # Configuration
