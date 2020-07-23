@@ -26,5 +26,7 @@ return [
     // {
     //      "addon_id": "confirming_app (id or name)"
     // }
-    'heroku_addon_attachments' => env('HEROKU_DEPLOY_ADDON_ATTACHMENTS', [])
+    'heroku_addon_attachments' => env('HEROKU_DEPLOY_ADDON_ATTACHMENTS', []),
+    // Enable automated certificate management in Heroku for each subdomain
+    'enable_acm' => env('HEROKU_DEPLOY_ENABLE_ACM', true)
 ];

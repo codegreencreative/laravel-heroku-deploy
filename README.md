@@ -44,7 +44,9 @@ return [
     // {
     //      "addon_id": "confirming_app (id or name)"
     // }
-    'heroku_addon_attachments' => env('HEROKU_DEPLOY_ADDON_ATTACHMENTS', [])
+    'heroku_addon_attachments' => env('HEROKU_DEPLOY_ADDON_ATTACHMENTS', []),
+    // Enable automated certificate management in Heroku for each subdomain
+    'enable_acm' => env('HEROKU_DEPLOY_ENABLE_ACM', true)
 ];
 ```
 
@@ -56,12 +58,14 @@ Example .env entry.
 HEROKU_DEPLOY_HEROKU_TOKEN=addyourtokenehere
 HEROKU_DEPLOY_CLOUDFLARE_TOKEN=addyourtokenehere
 HEROKU_DEPLOY_ZONES="{\"mydomain.com\": [\"id\", \"account\", \"support\"]}"
+# This connects Heroku Postgres database or Heroku Redis, for example
 HEROKU_DEPLOY_ADDON_ATTACHMENTS="{\"07a200a0-f00e-466a-8981-aaae418cad8f\": \"my-app-staging\"}"
+HEROKU_DEPLOY_ENABLE_ACM=false
 ```
 
 ## app.json
 
-Add the postdeploy and pr-predestroy commands to your app.json file.
+Add the `postdeploy` and `pr-predestroy` commands to your app.json file.
 
 ```json
 {
@@ -72,4 +76,27 @@ Add the postdeploy and pr-predestroy commands to your app.json file.
 }  
 ```
 
-## Usage
+## Config Vars
+
+Two additional config vars are added/updated depending on your own configuration, `APP_BASE_DOMAIN` and `APP_URL`. The first domain you defin in `HEROKU_DEPLOY_ZONES` will be considered your base domain as you can only have one. The first subdomain of your first domain is considered your `APP_URL`. We also use the pull request number to keep review apps unique. Pull request numbers are provided by Heroku as environment variables.
+
+For example, these will be added to your environment automatically:
+
+```
+APP_BASE_DOMAIN=pr-125.mydomain.com
+APP_URL=https://id.pr-125.mydomain.com
+```
+
+Should you not enable ACM, session cookies will be set to insecure.
+
+```
+SESSION_SECURE_COOKIE=false
+```
+
+Session cookies will be created with a unique name.
+
+```
+SESSION_COOKIE=PR125_SID
+```
+
+Any other config vars that need to be added can be done so in your Heroku pipline.
