@@ -99,4 +99,4 @@ Session cookies will be created with a unique name.
 SESSION_COOKIE=PR125_SID
 ```
 
-Any other config vars that need to be added can be done so in your Heroku pipline.
+Any other config vars that need to be added can be done so in your Heroku pipeline.
