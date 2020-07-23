@@ -21,6 +21,8 @@ The command below will add a new heroku-deploy.php config file in your config fo
 php artisan vendor:publish --tag="heroky_deploy_config"
 ```
 
+## heroku-deploy.php
+
 ```php
 // config/heroku-deploy.php
 
@@ -33,6 +35,19 @@ php artisan vendor:publish --tag="heroky_deploy_config"
             'root' => storage_path() . '/samlidp',
         ]
 ],
+```
+
+## app.json
+
+Add the postdeploy and pr-predestroy commands to your app.json file.
+
+```json
+{
+    "scripts": {
+        "postdeploy": "php artisan heroku:postdeploy",
+        "pr-predestroy": "php artisan heroku:pr-predestroy"
+    }, 
+}  
 ```
 
 ## Usage
