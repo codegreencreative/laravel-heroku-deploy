@@ -34,14 +34,18 @@ class Postdeploy extends Command
      */
     public function handle()
     {
-        dd($this->cloudflare_zones);
         try {
             // Collect cnames to add to Cloudflare
             $host_cnames = new Collection;
+            // Get ALL zones
+            $response = $this->cloudflare('get', 'zones');
+            $zones = collect($response->json());
             // Loop through each of the zones we need to modify
-            foreach ($this->cloudflare_zones as $domain => $zone) {
+            foreach ($this->cloudflare_zones as $domain => $subdomains) {
+                // Find zone record
+                $zone = $zones->firstWhere('name', $domain);
                 // Each subdomain needs to be added
-                foreach ($zone['subdomains'] as $subdomain) {
+                foreach ($subdomains as $subdomain) {
                     // Add hostname to Heroku review app
                     $response = $this->heroku('post', sprintf('apps/%s/domains', $this->heroku_app_name), [
                         'hostname' => $this->getHostname($subdomain, $domain)
@@ -69,12 +73,14 @@ class Postdeploy extends Command
                 'SESSION_SECURE_COOKIE' => $this->enable_acm ? 'true' : 'false',
                 'SESSION_COOKIE' => sprintf('PR%s_SID', $this->heroku_pr_number)
             ]);
-            // Attach staging postgres database to work with review apps
-            $response = $this->heroku('post', 'addon-attachments', [
-                'addon' => $this->herok_pgsql_addon, // This could change
-                'app' => $this->heroku_app_name,
-                'confirm' => $this->herok_addon_confirmation_app
-            ]);
+            foreach ($this->herok_addon_attachments as $addon_id => $app_id) {
+                // Attach staging postgres database to work with review apps
+                $response = $this->heroku('post', 'addon-attachments', [
+                    'addon' => $addon_id, // This could change
+                    'app' => $this->heroku_app_name,
+                    'confirm' => $app_id
+                ]);
+            }
             // Enable ACM (SSL) NOT IMPLEMENTING DUE TO LETS ENCRYPT RATE LIMITING
             $response = $this->heroku('post', sprintf('apps/%s/acm', $this->heroku_app_name), [], [
                 'Content-Type' => 'application/json',
@@ -83,5 +89,6 @@ class Postdeploy extends Command
             // Should any of the above requests fail, the build will fail requiring a rebuild
             return 1;
         }
+        return 0;
     }
 }

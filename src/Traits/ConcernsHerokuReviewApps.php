@@ -125,7 +125,7 @@ trait ConcernsHerokuReviewApps
      *
      * @return Response
      */
-    protected function heroku($method, $uri, $params, $headers = [])
+    protected function heroku($method, $uri, $params = [], $headers = [])
     {
         $response = Http::withToken($this->heroku_token)
             ->withHeaders(array_merge(['Accept' => 'application/vnd.heroku+json; version=3'], $headers))
@@ -141,7 +141,7 @@ trait ConcernsHerokuReviewApps
      *
      * @return Response
      */
-    protected function cloudflare($method, $uri, $params, $headers = [])
+    protected function cloudflare($method, $uri, $params = [], $headers = [])
     {
         $response = Http::withToken($this->cloudflare_token)
             ->withHeaders($headers)
@@ -165,7 +165,9 @@ trait ConcernsHerokuReviewApps
                 $response->throw();
             } catch (\Illuminate\Http\Client\RequestException $e) {
                 // Notify Bugsnag of the exception and continue to the next one
-                Bugsnag::notifyException($e);
+                if (class_exists(\Bugsnag\BugsnagLaravel\Facades\Bugsnag::class)) {
+                    \Bugsnag\BugsnagLaravel\Facades\Bugsnag::notifyException($e);
+                }
                 // Rethrow the exception to be caught
                 throw $e;
             }

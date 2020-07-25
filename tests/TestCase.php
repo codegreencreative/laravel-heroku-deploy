@@ -40,7 +40,7 @@ class TestCase extends Orchestra
         );
         $app['config']->set(
             'heroku_addon_attachments',
-            "{\"addon_id\": \"confirming_app (id or name)\"}"
+            "[{\"addon_id\": \"confirming_app (id or name)\"}]"
         );
     }
 }
