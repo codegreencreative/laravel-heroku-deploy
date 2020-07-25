@@ -8,8 +8,11 @@ namespace CodeGreenCreative\LaravelHerokuDeploy;
  * @license MIT
  */
 
-use Illuminate\Contracts\Events\Dispatcher;
+use Illuminate\Routing\Router;
 use Illuminate\Support\ServiceProvider;
+use Illuminate\Contracts\Events\Dispatcher;
+use CodeGreenCreative\LaravelHerokuDeploy\Console\Commands\Postdeploy;
+use CodeGreenCreative\LaravelHerokuDeploy\Console\Commands\PrPredestroy;
 
 class LaravelHerokuDeployServiceProvider extends ServiceProvider
 {
@@ -67,8 +70,8 @@ class LaravelHerokuDeployServiceProvider extends ServiceProvider
     {
         if ($this->app->runningInConsole()) {
             $this->commands([
-                CreateCertificate::class,
-                CreateServiceProvider::class,
+                Postdeploy::class,
+                PrPredestroy::class,
             ]);
         }
     }

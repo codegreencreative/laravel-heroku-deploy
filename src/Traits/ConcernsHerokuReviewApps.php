@@ -1,6 +1,6 @@
 <?php
 
-namespace LaravelHerokuDeploy\Traits;
+namespace CodeGreenCreative\LaravelHerokuDeploy\Traits;
 
 use Bugsnag\BugsnagLaravel\Facades\Bugsnag;
 use GuzzleHttp\Exception\RequestException;
@@ -27,12 +27,7 @@ trait ConcernsHerokuReviewApps
      *
      * @var array
      */
-    private $cloudflare_zones = [
-        'mentors.com' => [
-            'id' => 'e113cf1a548950222e26d61bb7b0c44a',
-            'subdomains' => ['id', 'account', 'support', 'policies']
-        ]
-    ];
+    private $cloudflare_zones = [];
 
     /**
      * The name of the Heroku review app
@@ -42,18 +37,18 @@ trait ConcernsHerokuReviewApps
     private $heroku_app_name = null;
 
     /**
-     * The ID of the staging Postgresql addon for attaching
+     * The pull request number retrieved from Heroku, but supplied by Github
      *
-     * @var string
+     * @var null|int
      */
-    private $herok_pgsql_addon = '07a200a0-f00e-466a-8981-aaae418cad8f';
+    private $heroku_pr_number = null;
 
     /**
      * The App name we will be confirming the addon attachement
      *
-     * @var string
+     * @var array
      */
-    private $herok_addon_confirmation_app = 'mentors-account-api-staging';
+    private $herok_addon_attachments = [];
 
     /**
      * Switch to add Automated Certificate Management for domains
@@ -61,13 +56,6 @@ trait ConcernsHerokuReviewApps
      * @var boolean
      */
     private $enable_acm;
-
-    /**
-     * The pull request number retrieved from Heroku, but supplied by Github
-     *
-     * @var null|int
-     */
-    private $heroku_pr_number = null;
 
     public function __construct()
     {

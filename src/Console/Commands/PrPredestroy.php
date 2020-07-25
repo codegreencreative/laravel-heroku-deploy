@@ -1,11 +1,11 @@
 <?php
 
-namespace App\Console\Commands;
+namespace CodeGreenCreative\LaravelHerokuDeploy\Console\Commands;
 
-use App\Console\ConcernsHerokuReviewApps;
-use Bugsnag\BugsnagLaravel\Facades\Bugsnag;
 use Illuminate\Console\Command;
 use Illuminate\Support\Facades\Http;
+use Bugsnag\BugsnagLaravel\Facades\Bugsnag;
+use CodeGreenCreative\LaravelHerokuDeploy\Traits\ConcernsHerokuReviewApps;
 
 class PrPredestroy extends Command
 {

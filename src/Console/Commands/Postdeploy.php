@@ -1,12 +1,12 @@
 <?php
 
-namespace LaravelHerokuDeploy\Console\Commands;
+namespace CodeGreenCreative\LaravelHerokuDeploy\Console\Commands;
 
-use GuzzleHttp\Exception\RequestException;
 use Illuminate\Console\Command;
 use Illuminate\Support\Collection;
 use Illuminate\Support\Facades\Http;
-use LaravelHerokuDeploy\Traits\ConcernsHerokuReviewApps;
+use GuzzleHttp\Exception\RequestException;
+use CodeGreenCreative\LaravelHerokuDeploy\Traits\ConcernsHerokuReviewApps;
 
 class Postdeploy extends Command
 {
@@ -34,6 +34,7 @@ class Postdeploy extends Command
      */
     public function handle()
     {
+        dd($this->cloudflare_zones);
         try {
             // Collect cnames to add to Cloudflare
             $host_cnames = new Collection;
