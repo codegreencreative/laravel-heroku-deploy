@@ -34,80 +34,53 @@ class Postdeploy extends Command
      */
     public function handle()
     {
-        // Collect cnames to add to Cloudflare
-        $host_cnames = new Collection;
-        // Loop through each of the zones we need to modify
-        foreach ($this->cloudflare_zones as $domain => $zone) {
-            // Each subdomain needs to be added
-            foreach ($zone['subdomains'] as $subdomain) {
-                // Add hostname to Heroku App, if an exception is thrown,
-                // we will need to rebuild the app
-                $hostname = $this->getHostname($subdomain, $domain);
-                $response = Http::withToken($this->heroku_token)
-                    ->withHeaders([
-                        'Accept' => 'application/vnd.heroku+json; version=3'
-                    ])->post(sprintf('https://api.heroku.com/apps/%s/domains', $this->heroku_app_name), [
-                        'hostname' => $hostname
+        try {
+            // Collect cnames to add to Cloudflare
+            $host_cnames = new Collection;
+            // Loop through each of the zones we need to modify
+            foreach ($this->cloudflare_zones as $domain => $zone) {
+                // Each subdomain needs to be added
+                foreach ($zone['subdomains'] as $subdomain) {
+                    // Add hostname to Heroku review app
+                    $response = $this->heroku('post', sprintf('apps/%s/domains', $this->heroku_app_name), [
+                        'hostname' => $this->getHostname($subdomain, $domain)
                     ]);
-                // There was a problem with adding the domain to Heroku
-                if (! $this->handleResponse($response)) {
-                    return 1;
+                    // Push cnames on to the collection
+                    $host_cnames->push([
+                        'zone' => $zone['id'],
+                        'hostname' => $this->getHostname($subdomain, $domain),
+                        'cname' => $response->json()['cname']
+                    ]);
                 }
-                // Push cnames on to the collection
-                $host_cnames->push([
-                    'zone' => $zone['id'],
-                    'hostname' => $hostname,
-                    'cname' => $response->json()['cname']
-                ]);
             }
-        }
-        // Loop through the domains added into heroku
-        foreach ($host_cnames as $host_cname) {
-            $response = Http::withToken($this->cloudflare_token)
-                ->post(sprintf('https://api.cloudflare.com/client/v4/zones/%s/dns_records', $host_cname['zone']), [
+            // Loop through the domains added into heroku
+            foreach ($host_cnames as $host_cname) {
+                $response = $this->cloudflare('post', sprintf('zones/%s/dns_records', $host_cname['zone']), [
                     'type' => 'CNAME',
                     'name' => $host_cname['hostname'],
                     'content' => $host_cname['cname']
                 ]);
-
-            if (! $this->handleResponse($response)) {
-                return 1;
-            }
-        };
-        // Update APP_BASE_DOMAIN to match our review app
-        $response = Http::withToken(config('services.heroku.token'))
-            ->withHeaders([
-                'Accept' => 'application/vnd.heroku+json; version=3'
-            ])->patch(sprintf('https://api.heroku.com/apps/%s/config-vars', $this->heroku_app_name), [
+            };
+            // Update config vars to support the review app
+            $response = $this->heroku('patch', sprintf('apps/%s/config-vars', $this->heroku_app_name), [
                 'APP_BASE_DOMAIN' => sprintf('pr-%s.mentors.com', $this->heroku_pr_number),
-                'APP_URL' => sprintf('https://id.pr-%s.mentors.com', $this->heroku_pr_number)
+                'APP_URL' => sprintf('https://id.pr-%s.mentors.com', $this->heroku_pr_number),
+                'SESSION_SECURE_COOKIE' => $this->enable_acm ? 'true' : 'false',
+                'SESSION_COOKIE' => sprintf('PR%s_SID', $this->heroku_pr_number)
             ]);
-
-        if (! $this->handleResponse($response)) {
-            return 1;
-        }
-
-        // Attach staging postgres database to work with review apps
-        $response = Http::withToken(config('services.heroku.token'))
-            ->withHeaders([
-                'Accept' => 'application/vnd.heroku+json; version=3'
-            ])->post('https://api.heroku.com/addon-attachments', [
+            // Attach staging postgres database to work with review apps
+            $response = $this->heroku('post', 'addon-attachments', [
                 'addon' => $this->herok_pgsql_addon, // This could change
                 'app' => $this->heroku_app_name,
                 'confirm' => $this->herok_addon_confirmation_app
             ]);
-
-        if (! $this->handleResponse($response)) {
+            // Enable ACM (SSL) NOT IMPLEMENTING DUE TO LETS ENCRYPT RATE LIMITING
+            $response = $this->heroku('post', sprintf('apps/%s/acm', $this->heroku_app_name), [], [
+                'Content-Type' => 'application/json',
+            ]);
+        } catch (\Illuminate\Http\Client\RequestException $e) {
+            // Should any of the above requests fail, the build will fail requiring a rebuild
             return 1;
         }
-
-        // Enable ACM (SSL) NOT IMPLEMENTING DUE TO LETS ENCRYPT RATE LIMITING
-        $response = Http::withToken(config('services.heroku.token'))
-            ->withHeaders([
-                'Content-Type' => 'application/json',
-                'Accept' => 'application/vnd.heroku+json; version=3'
-            ])->post(sprintf('https://api.heroku.com/apps/%s/acm', $this->heroku_app_name));
-
-        return $this->handleResponse($response) ? 0 : 1;
     }
 }

@@ -56,6 +56,13 @@ trait ConcernsHerokuReviewApps
     private $herok_addon_confirmation_app = 'mentors-account-api-staging';
 
     /**
+     * Switch to add Automated Certificate Management for domains
+     *
+     * @var boolean
+     */
+    private $enable_acm;
+
+    /**
      * The pull request number retrieved from Heroku, but supplied by Github
      *
      * @var null|int
@@ -70,6 +77,9 @@ trait ConcernsHerokuReviewApps
         $this->cloudflare_token = config('services.cloudflare.token');
         $this->heroku_app_name = config('services.heroku.app_name');
         $this->heroku_pr_number = config('services.heroku.pr_number');
+        $this->cloudflare_zones = json_decode(config('services.heroku.cloudflare_zones'));
+        $this->heroku_addon_attachments = json_decode(config('services.heroku.heroku_addon_attachments'));
+        $this->enable_acm = config('services.heroku.enable_acm');
     }
 
     /**
@@ -123,6 +133,38 @@ trait ConcernsHerokuReviewApps
     }
 
     /**
+     * Make an API request to Heroku Platform API
+     *
+     * @return Response
+     */
+    protected function heroku($method, $uri, $params, $headers = [])
+    {
+        $response = Http::withToken($this->heroku_token)
+            ->withHeaders(array_merge(['Accept' => 'application/vnd.heroku+json; version=3'], $headers))
+            ->$method(sprintf('https://api.heroku.com/%s', $uri), $params);
+
+        if ($this->handleResponse($response)) {
+            return $response;
+        }
+    }
+
+    /**
+     * Make an API request to Cloudflare API
+     *
+     * @return Response
+     */
+    protected function cloudflare($method, $uri, $params, $headers = [])
+    {
+        $response = Http::withToken($this->cloudflare_token)
+            ->withHeaders($headers)
+            ->$method(sprintf('https://api.cloudflare.com/client/v4/%s', $uri), $params);
+
+        if ($this->handleResponse($response)) {
+            return $response;
+        }
+    }
+
+    /**
      * Handle an Http response
      *
      * @param  \Illuminate\Http\Client\Response $response [description]
@@ -136,7 +178,8 @@ trait ConcernsHerokuReviewApps
             } catch (\Illuminate\Http\Client\RequestException $e) {
                 // Notify Bugsnag of the exception and continue to the next one
                 Bugsnag::notifyException($e);
-                return false;
+                // Rethrow the exception to be caught
+                throw $e;
             }
         }
 
