@@ -6,6 +6,7 @@ use Illuminate\Console\Command;
 use Illuminate\Support\Facades\Http;
 use Bugsnag\BugsnagLaravel\Facades\Bugsnag;
 use CodeGreenCreative\LaravelHerokuDeploy\Traits\ConcernsHerokuReviewApps;
+use CodeGreenCreative\LaravelHerokuDeploy\Exceptions\LaravelHerokuDeployException;
 
 class PrPredestroy extends Command
 {
@@ -32,44 +33,53 @@ class PrPredestroy extends Command
      */
     public function handle()
     {
-        // Loop through each of the zones we need to modify
-        foreach ($this->cloudflare_zones as $domain => $zone) {
-            // Get current DNS zone records from Cloudflare
-            $response = Http::withToken($this->cloudflare_token)
-                ->get(sprintf('https://api.cloudflare.com/client/v4/zones/%s/dns_records', $zone['id']), [
-                    'type' => 'CNAME'
-                ]);
-
-            if (! $this->handleResponse($response)) {
-                return 1;
-            }
-
-            $current_zones = collect($response->json()['result']);
-
-            // Each subdomain needs to be added
-            foreach ($zone['subdomains'] as $subdomain) {
-                try {
-                    $record = $current_zones->firstWhere('name', $this->getHostname($subdomain, $domain));
-                    if (is_null($record)) {
-                        throw new \App\Exceptions\PrPredestroyException('Review app hostname not found when removing zone.');
-                    }
-                } catch (\App\Exceptions\PrPredestroyException $e) {
-                    // Notify Bugsnag of the exception and continue to the next one
-                    Bugsnag::notifyException($e);
-                    continue;
-                }
-                // Attempt to remove the dns record
+        try {
+            // Get ALL zones
+            $response = $this->cloudflare('get', 'zones');
+            $zones = collect($response->json());
+            dd($zones);
+            // Loop through each of the zones we need to modify
+            foreach ($this->cloudflare_zones as $domain => $subdomains) {
+                // Find zone record
+                $zone = $zones->firstWhere('name', $domain);
+                // Get current DNS zone records from Cloudflare
                 $response = Http::withToken($this->cloudflare_token)
-                    ->delete(sprintf(
-                        'https://api.cloudflare.com/client/v4/zones/%s/dns_records/%s',
-                        $zone['id'],
-                        $record['id']
-                    ));
+                    ->get(sprintf('https://api.cloudflare.com/client/v4/zones/%s/dns_records', $zone['id']), [
+                        'type' => 'CNAME'
+                    ]);
 
-                $this->handleResponse($response);
+                if (! $this->handleResponse($response)) {
+                    return 1;
+                }
+
+                $current_zones = collect($response->json()['result']);
+
+                // Each subdomain needs to be added
+                foreach ($subdomains as $subdomain) {
+                    try {
+                        $record = $current_zones->firstWhere('name', $this->getHostname($subdomain, $domain));
+                        if (is_null($record)) {
+                            throw new LaravelHerokuDeployException('Review app hostname not found when removing zone.');
+                        }
+                    } catch (LaravelHerokuDeployException $e) {
+                        // Continue to the next subdomain for removal
+                        continue;
+                    }
+                    // Attempt to remove the dns record
+                    $response = Http::withToken($this->cloudflare_token)
+                        ->delete(sprintf(
+                            'https://api.cloudflare.com/client/v4/zones/%s/dns_records/%s',
+                            $zone['id'],
+                            $record['id']
+                        ));
+
+                    $this->handleResponse($response);
+                }
+
+                return 0;
             }
+        } catch (\Illuminate\Http\Client\RequestException $e) {
 
-            return 0;
         }
     }
 }

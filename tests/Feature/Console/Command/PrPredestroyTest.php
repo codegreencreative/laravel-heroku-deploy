@@ -1,15 +1,16 @@
 <?php
 
-namespace Tests\Feature\Console\Command;
+namespace CodeGreenCreative\LaravelHerokuDeploy\Tests\Feature\Console\Command;
 
 use Illuminate\Support\Facades\Http;
-use Tests\TestCase;
+use CodeGreenCreative\LaravelHerokuDeploy\Tests\TestCase;
 
 class PrPredestroyTest extends TestCase
 {
     /**
      * [testDeleteZoneCnamesFromCloudflareSuccessful description]
      *
+     * @test
      * @return void
      */
     public function testDeleteZoneCnamesFromCloudflareSuccessful()
@@ -22,7 +23,7 @@ class PrPredestroyTest extends TestCase
                 'name' => sprintf('%s.pr-%s.mentors.com', $subdomain, config('services.heroku.pr_number'))
             ];
         }, $subdomains);
-
+dd($zones);
         // Fake our API calls to Cloudflare
         Http::fake([
             'api.cloudflare.com/client/v4/zones/*/dns_records*' => Http::sequence()
