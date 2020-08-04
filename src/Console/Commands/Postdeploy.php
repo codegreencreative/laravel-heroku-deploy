@@ -73,7 +73,8 @@ class Postdeploy extends Command
                 'SESSION_SECURE_COOKIE' => $this->enable_acm ? 'true' : 'false',
                 'SESSION_COOKIE' => sprintf('PR%s_SID', $this->heroku_pr_number)
             ]);
-            foreach ($this->herok_addon_attachments as $addon_id => $app_id) {
+            // Add any Heroku addons
+            foreach ($this->heroku_addon_attachments as $addon_id => $app_id) {
                 // Attach staging postgres database to work with review apps
                 $response = $this->heroku('post', 'addon-attachments', [
                     'addon' => $addon_id, // This could change

@@ -35,12 +35,15 @@ class TestCase extends Orchestra
     {
         // Setup default database to use sqlite :memory:
         $app['config']->set(
-            'services.heroku.cloudflare_zones',
-            "{\"mydomain.com\": [\"id\", \"account\", \"support\", \"policies\"]}"
+            'heroku-deploy.cloudflare_zones',
+            json_decode("{\"mydomain.com\": [\"id\", \"account\", \"support\", \"policies\"]}", true)
         );
+        // Set addon attachments
         $app['config']->set(
-            'heroku_addon_attachments',
-            "[{\"addon_id\": \"confirming_app (id or name)\"}]"
+            'heroku-deploy.heroku_addon_attachments',
+            json_decode("[{\"addon_id\": \"confirming_app (id or name)\"}]", true)
         );
+        // Set a pull request number for testing
+        $app['config']->set('heroku-deploy.pr_number', 897);
     }
 }

@@ -37,7 +37,7 @@ class PrPredestroy extends Command
             // Get ALL zones
             $response = $this->cloudflare('get', 'zones');
             $zones = collect($response->json());
-            dd($zones);
+            dd($this->cloudflare_zones);
             // Loop through each of the zones we need to modify
             foreach ($this->cloudflare_zones as $domain => $subdomains) {
                 // Find zone record

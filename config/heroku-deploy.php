@@ -21,12 +21,12 @@ return [
     // {
     //     "mydomain.com": ["id", "account", "support", "policies"]
     // }
-    'cloudflare_zones' => env('HEROKU_DEPLOY_ZONES', []),
+    'cloudflare_zones' => json_decode(env('HEROKU_DEPLOY_ZONES', '[]'), true),
     // You can attach addons from other applications
     // {
     //      "addon_id": "confirming_app (id or name)"
     // }
-    'heroku_addon_attachments' => env('HEROKU_DEPLOY_ADDON_ATTACHMENTS', []),
+    'heroku_addon_attachments' => json_decode(env('HEROKU_DEPLOY_ADDON_ATTACHMENTS', '[]'), true),
     // Enable automated certificate management in Heroku for each subdomain
     'enable_acm' => env('HEROKU_DEPLOY_ENABLE_ACM', true)
 ];

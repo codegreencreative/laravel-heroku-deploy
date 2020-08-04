@@ -48,7 +48,7 @@ trait ConcernsHerokuReviewApps
      *
      * @var array
      */
-    private $herok_addon_attachments = [];
+    private $heroku_addon_attachments = [];
 
     /**
      * Switch to add Automated Certificate Management for domains
@@ -59,15 +59,15 @@ trait ConcernsHerokuReviewApps
 
     public function __construct()
     {
-        parent::__construct();
+        $this->heroku_token = config('heroku-deploy.token');
+        $this->cloudflare_token = config('heroku-deploy.cloudflare.token');
+        $this->heroku_app_name = config('heroku-deploy.app_name');
+        $this->heroku_pr_number = config('heroku-deploy.pr_number');
+        $this->cloudflare_zones = config('heroku-deploy.cloudflare_zones');
+        $this->heroku_addon_attachments = config('heroku-deploy.heroku_addon_attachments');
+        $this->enable_acm = config('heroku-deploy.enable_acm');
 
-        $this->heroku_token = config('services.heroku.token');
-        $this->cloudflare_token = config('services.cloudflare.token');
-        $this->heroku_app_name = config('services.heroku.app_name');
-        $this->heroku_pr_number = config('services.heroku.pr_number');
-        $this->cloudflare_zones = json_decode(config('services.heroku.cloudflare_zones'));
-        $this->heroku_addon_attachments = json_decode(config('services.heroku.heroku_addon_attachments'));
-        $this->enable_acm = config('services.heroku.enable_acm');
+        parent::__construct();
     }
 
     /**
