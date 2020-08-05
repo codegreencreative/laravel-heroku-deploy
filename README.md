@@ -39,12 +39,12 @@ return [
     // {
     //     "mydomain.com": ["id", "account", "support", "policies"]
     // }
-    'cloudflare_zones' => env('HEROKU_DEPLOY_ZONES', []),
+    'cloudflare_zones' => json_decode(env('HEROKU_DEPLOY_ZONES', '[]'), true),
     // You can attach addons from other applications
     // {
     //      "addon_id": "confirming_app (id or name)"
     // }
-    'heroku_addon_attachments' => env('HEROKU_DEPLOY_ADDON_ATTACHMENTS', []),
+    'heroku_addon_attachments' => json_decode(env('HEROKU_DEPLOY_ADDON_ATTACHMENTS', '[]'), true),
     // Enable automated certificate management in Heroku for each subdomain
     'enable_acm' => env('HEROKU_DEPLOY_ENABLE_ACM', true)
 ];
@@ -59,7 +59,7 @@ HEROKU_DEPLOY_HEROKU_TOKEN=addyourtokenehere
 HEROKU_DEPLOY_CLOUDFLARE_TOKEN=addyourtokenehere
 HEROKU_DEPLOY_ZONES="{\"mydomain.com\": [\"id\", \"account\", \"support\"]}"
 # This connects Heroku Postgres database or Heroku Redis, for example
-HEROKU_DEPLOY_ADDON_ATTACHMENTS="{\"07a200a0-f00e-466a-8981-aaae418cad8f\": \"my-app-staging\"}"
+HEROKU_DEPLOY_ADDON_ATTACHMENTS="{\"xxxx-xxxx-xxxx-xxxx-xxxx\": \"xxxxxxxxx\"}"
 HEROKU_DEPLOY_ENABLE_ACM=false
 ```
 
@@ -100,3 +100,7 @@ SESSION_COOKIE=PR125_SID
 ```
 
 Any other config vars that need to be added can be done so in your Heroku pipeline.
+
+## Bug Reporting
+
+If Bugsnag is installed, exceptions will be reported in Bugsnag.
