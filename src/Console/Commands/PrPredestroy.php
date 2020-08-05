@@ -33,53 +33,38 @@ class PrPredestroy extends Command
      */
     public function handle()
     {
+        // Catch \Illuminate\Http\Client\RequestException's
         try {
-            // Get ALL zones
+            // Get ALL zones for this account
             $response = $this->cloudflare('get', 'zones');
-            $zones = collect($response->json());
-            dd($this->cloudflare_zones);
+            $zones = collect($response->json()['result']);
             // Loop through each of the zones we need to modify
             foreach ($this->cloudflare_zones as $domain => $subdomains) {
                 // Find zone record
                 $zone = $zones->firstWhere('name', $domain);
                 // Get current DNS zone records from Cloudflare
-                $response = Http::withToken($this->cloudflare_token)
-                    ->get(sprintf('https://api.cloudflare.com/client/v4/zones/%s/dns_records', $zone['id']), [
-                        'type' => 'CNAME'
-                    ]);
-
-                if (! $this->handleResponse($response)) {
-                    return 1;
-                }
+                $response = $this->cloudflare('get', sprintf('zones/%s/dns_records', $zone['id']), [
+                    'type' => 'CNAME'
+                ]);
 
                 $current_zones = collect($response->json()['result']);
 
-                // Each subdomain needs to be added
+                // Each subdomain needs to be deleted
                 foreach ($subdomains as $subdomain) {
-                    try {
-                        $record = $current_zones->firstWhere('name', $this->getHostname($subdomain, $domain));
-                        if (is_null($record)) {
-                            throw new LaravelHerokuDeployException('Review app hostname not found when removing zone.');
-                        }
-                    } catch (LaravelHerokuDeployException $e) {
-                        // Continue to the next subdomain for removal
-                        continue;
+                    $record = $current_zones->firstWhere('name', $this->getHostname($subdomain, $domain));
+                    if (is_null($record)) {
+                        throw new LaravelHerokuDeployException('Review app hostname not found when removing zone.');
                     }
                     // Attempt to remove the dns record
-                    $response = Http::withToken($this->cloudflare_token)
-                        ->delete(sprintf(
-                            'https://api.cloudflare.com/client/v4/zones/%s/dns_records/%s',
-                            $zone['id'],
-                            $record['id']
-                        ));
-
-                    $this->handleResponse($response);
+                    $response = $this->cloudflare(
+                        'delete',
+                        sprintf('zones/%s/dns_records/%s', $zone['id'], $record['id'])
+                    );
                 }
-
                 return 0;
             }
-        } catch (\Illuminate\Http\Client\RequestException $e) {
-
+        } catch (LaravelHerokuDeployException $e) {
+            return 1;
         }
     }
 }

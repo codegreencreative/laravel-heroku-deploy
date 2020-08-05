@@ -3,6 +3,7 @@
 namespace CodeGreenCreative\LaravelHerokuDeploy\Traits;
 
 use Bugsnag\BugsnagLaravel\Facades\Bugsnag;
+use CodeGreenCreative\LaravelHerokuDeploy\Exceptions\LaravelHerokuDeployException;
 use GuzzleHttp\Exception\RequestException;
 use Illuminate\Support\Facades\Http;
 
@@ -164,15 +165,9 @@ trait ConcernsHerokuReviewApps
             try {
                 $response->throw();
             } catch (\Illuminate\Http\Client\RequestException $e) {
-                // Notify Bugsnag of the exception and continue to the next one
-                if (class_exists(\Bugsnag\BugsnagLaravel\Facades\Bugsnag::class)) {
-                    \Bugsnag\BugsnagLaravel\Facades\Bugsnag::notifyException($e);
-                }
-                // Rethrow the exception to be caught
-                throw $e;
+                throw new LaravelHerokuDeployException;
             }
         }
-
         return true;
     }
 }

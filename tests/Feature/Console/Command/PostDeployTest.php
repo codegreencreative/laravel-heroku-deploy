@@ -35,34 +35,6 @@ class PostDeployTest extends TestCase
     public function addHostNameToHerokuAndCloudflareSuccessful():void
     {
         $this->setUpSequence();
-        // foreach ($this->cloudflare_zones as $domain => $subdomains) {
-        //     // Fake finding the zone record in Cloudflare
-        //     $this->sequences['api.cloudflare.com/client/v4/zones']->push(['result' => [
-        //         'id' => \Illuminate\Support\Str::random(32),
-        //         'name' => $domain
-        //     ]], 200);
-        //     // Loop through each subdomain for faking additions to Heroku and Cloudflare
-        //     foreach ($subdomains as $key) {
-        //         $subdomain = sprintf('%s.pr-%s.%s', $key, config('heroku-deploy.pr_number'), $domain);
-        //         // For adding subdomain to Heroku
-        //         $this->sequences['api.heroku.com*']->push([
-        //             'cname' => $subdomain
-        //         ], 200);
-        //         // For adding subdomain to Cloudflare
-        //         $this->sequences['api.cloudflare.com/client/v4/zones/*/dns_records']->push([
-        //             'id' => \Illuminate\Support\Str::random(32),
-        //             'type' => 'CNAME',
-        //             'name' => $subdomain
-        //         ], 201);
-        //     }
-        // }
-        // // Finish up the rest of the sequences
-        // $this->sequences['api.heroku.com*']
-        //     ->pushStatus(200) // Update config vars
-        //     ->pushStatus(201) // Postgres attachment
-        //     ->pushStatus(200); // ACM
-
-        // Http::fake($this->sequences->toArray());
 
         $this->artisan('heroku:postdeploy')
             ->assertExitCode(0);
@@ -163,12 +135,14 @@ class PostDeployTest extends TestCase
         $attachment = 201,
         $acm = 200
     ) {
-        foreach ($this->cloudflare_zones as $domain => $subdomains) {
-            // Fake finding the zone record in Cloudflare
-            $this->sequences['api.cloudflare.com/client/v4/zones']->push(['result' => [
+        // Fake finding all zone records in Cloudflare
+        $this->sequences['api.cloudflare.com/client/v4/zones']->push(['result' => array_map(function ($domain) {
+            return [
                 'id' => \Illuminate\Support\Str::random(32),
                 'name' => $domain
-            ]], $zone);
+            ];
+        }, array_keys($this->cloudflare_zones))], $zone);
+        foreach ($this->cloudflare_zones as $domain => $subdomains) {
             // Loop through each subdomain for faking additions to Heroku and Cloudflare
             foreach ($subdomains as $key) {
                 $subdomain = sprintf('%s.pr-%s.%s', $key, config('heroku-deploy.pr_number'), $domain);

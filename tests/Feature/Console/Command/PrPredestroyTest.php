@@ -8,6 +8,22 @@ use Illuminate\Support\Facades\Http;
 
 class PrPredestroyTest extends TestCase
 {
+    private $cloudflare_zones;
+    private $sequences;
+
+    /**
+     * Set up some vars for the tests
+     */
+    public function setUp():void
+    {
+        parent::setUp();
+
+        $this->cloudflare_zones = config('heroku-deploy.cloudflare_zones');
+        $this->sequences = new Collection([
+            'api.cloudflare.com/client/v4/*' => Http::sequence()
+        ]);
+    }
+
     /**
      * [testDeleteZoneCnamesFromCloudflareSuccessful description]
      *
@@ -15,28 +31,7 @@ class PrPredestroyTest extends TestCase
      */
     public function deleteZoneCnamesFromCloudflareSuccessful()
     {
-        $cloudflare_zones = config('heroku-deploy.cloudflare_zones');
-        $zones = new Collection;
-        foreach ($cloudflare_zones as $domain => $subdomains) {
-            foreach ($subdomains as $subdomain) {
-                $zones->push([
-                    'id' => \Illuminate\Support\Str::random(32),
-                    'type' => 'CNAME',
-                    'name' => sprintf('%s.pr-%s.%s', $subdomain, config('heroku-deploy.heroku.pr_number'), $domain)
-                ]);
-            }
-        }
-
-        // Fake our API calls to Cloudflare
-        Http::fake([
-            'api.cloudflare.com/client/v4/zones' => Http::response(['result' => $zones], 200),
-            'api.cloudflare.com/client/v4/zones/*/dns_records*' => Http::sequence()
-                ->push(['result' => $zones], 200)
-                ->pushStatus(200)
-                ->pushStatus(200)
-                ->pushStatus(200)
-                ->pushStatus(200)
-        ]);
+        $this->setUpSequence();
 
         $this->artisan('heroku:pr-predestroy')
             ->assertExitCode(0);
@@ -44,13 +39,12 @@ class PrPredestroyTest extends TestCase
 
     /**
      * [testCloudflareGetZonesFail description]
+     *
+     * @test
      */
     public function cloudflareGetZonesFail()
     {
-        // Fake our API calls to Cloudflare
-        Http::fake([
-            'api.cloudflare.com/client/v4/zones/*/dns_records*' => Http::response('', 500)
-        ]);
+        $this->setUpSequence(500);
 
         $this->artisan('heroku:pr-predestroy')
             ->assertExitCode(1);
@@ -58,29 +52,69 @@ class PrPredestroyTest extends TestCase
 
     /**
      * [testCloudflareGetZonesFail description]
+     *
+     * @test
+     */
+    public function cloudflareGetDnsFail()
+    {
+        $this->setUpSequence(200, 500);
+
+        $this->artisan('heroku:pr-predestroy')
+            ->assertExitCode(1);
+    }
+
+    /**
+     * [testCloudflareGetZonesFail description]
+     *
+     * @test
      */
     public function cloudflareDeleteZonesFail()
     {
-        $subdomains = ['id', 'account', 'support', 'policies'];
-        $zones = array_map(function ($subdomain) {
-            return [
-                'id' => \Illuminate\Support\Str::random(32),
-                'type' => 'CNAME',
-                'name' => sprintf('%s.pr-%s.mentors.com', $subdomain, config('services.heroku.pr_number'))
-            ];
-        }, $subdomains);
-
-        // Fake our API calls to Cloudflare
-        Http::fake([
-            'api.cloudflare.com/client/v4/zones/*/dns_records*' => Http::sequence()
-                ->push(['result' => $zones], 200)
-                ->pushStatus(500)
-                ->pushStatus(500)
-                ->pushStatus(500)
-                ->pushStatus(500)
-        ]);
+        $this->setUpSequence(200, 200, 500);
 
         $this->artisan('heroku:pr-predestroy')
-            ->assertExitCode(0);
+            ->assertExitCode(1);
+    }
+
+    /**
+     * Set up sequence for HTTP requests
+     *
+     * @param integer $zone       [description]
+     * @param integer $hostname   [description]
+     * @param integer $cname      [description]
+     * @param integer $configvars [description]
+     * @param integer $attachment [description]
+     * @param integer $acm        [description]
+     */
+    public function setUpSequence(
+        $zone = 200,
+        $get = 200,
+        $delete = 200
+    ) {
+        // Fake finding all zone records in Cloudflare
+        $this->sequences['api.cloudflare.com/client/v4/*']->push(['result' => array_map(function ($domain) {
+            return [
+                'id' => \Illuminate\Support\Str::random(32),
+                'name' => $domain
+            ];
+        }, array_keys($this->cloudflare_zones))], $zone);
+        foreach ($this->cloudflare_zones as $domain => $subdomains) {
+            // For getting all CNAME records to check agains our subdomains list
+            $this->sequences['api.cloudflare.com/client/v4/*']->push([
+                'result' => array_map(function ($key) use ($domain) {
+                    $subdomain = sprintf('%s.pr-%s.%s', $key, config('heroku-deploy.pr_number'), $domain);
+                    return [
+                        'id' => \Illuminate\Support\Str::random(32),
+                        'name' => $subdomain
+                    ];
+                }, $subdomains)], $get);
+            // Loop through each subdomain for faking deletions in Cloudflare
+            foreach ($subdomains as $key) {
+                // Delete sequence
+                $this->sequences['api.cloudflare.com/client/v4/*']->pushStatus($delete);
+            }
+        }
+
+        Http::fake($this->sequences->toArray());
     }
 }

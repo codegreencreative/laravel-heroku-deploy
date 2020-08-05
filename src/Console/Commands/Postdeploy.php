@@ -2,11 +2,12 @@
 
 namespace CodeGreenCreative\LaravelHerokuDeploy\Console\Commands;
 
+use CodeGreenCreative\LaravelHerokuDeploy\Exceptions\LaravelHerokuDeployException;
+use CodeGreenCreative\LaravelHerokuDeploy\Traits\ConcernsHerokuReviewApps;
+use GuzzleHttp\Exception\RequestException;
 use Illuminate\Console\Command;
 use Illuminate\Support\Collection;
 use Illuminate\Support\Facades\Http;
-use GuzzleHttp\Exception\RequestException;
-use CodeGreenCreative\LaravelHerokuDeploy\Traits\ConcernsHerokuReviewApps;
 
 class Postdeploy extends Command
 {
@@ -39,7 +40,7 @@ class Postdeploy extends Command
             $host_cnames = new Collection;
             // Get ALL zones
             $response = $this->cloudflare('get', 'zones');
-            $zones = collect($response->json());
+            $zones = collect($response->json()['result']);
             // Loop through each of the zones we need to modify
             foreach ($this->cloudflare_zones as $domain => $subdomains) {
                 // Find zone record
@@ -86,7 +87,7 @@ class Postdeploy extends Command
             $response = $this->heroku('post', sprintf('apps/%s/acm', $this->heroku_app_name), [], [
                 'Content-Type' => 'application/json',
             ]);
-        } catch (\Illuminate\Http\Client\RequestException $e) {
+        } catch (LaravelHerokuDeployException $e) {
             // Should any of the above requests fail, the build will fail requiring a rebuild
             return 1;
         }
