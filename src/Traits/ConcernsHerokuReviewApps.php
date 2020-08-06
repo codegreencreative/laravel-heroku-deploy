@@ -60,8 +60,8 @@ trait ConcernsHerokuReviewApps
 
     public function __construct()
     {
-        $this->heroku_token = config('heroku-deploy.token');
-        $this->cloudflare_token = config('heroku-deploy.cloudflare.token');
+        $this->heroku_token = config('heroku-deploy.heroku_token');
+        $this->cloudflare_token = config('heroku-deploy.cloudflare_token');
         $this->heroku_app_name = config('heroku-deploy.app_name');
         $this->heroku_pr_number = config('heroku-deploy.pr_number');
         $this->cloudflare_zones = config('heroku-deploy.cloudflare_zones');

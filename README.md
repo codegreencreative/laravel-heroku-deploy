@@ -35,6 +35,9 @@ return [
     // Cloudflare token, get yours here:
     // https://dash.cloudflare.com/profile/api-tokens
     'cloudflare_token' => env('HEROKU_DEPLOY_CLOUDFLARE_TOKEN', null),
+    // Created by Heroku
+    'app_name' => env('HEROKU_APP_NAME', null),
+    'pr_number' => env('HEROKU_PR_NUMBER', null),
     // JSON array containing information on your zones you want to use for this project
     // {
     //     "mydomain.com": ["id", "account", "support", "policies"]
