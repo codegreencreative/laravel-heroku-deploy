@@ -82,7 +82,7 @@ Add the `postdeploy` and `pr-predestroy` commands to your app.json file.
 
 ## Config Vars
 
-Two additional config vars are added/updated depending on your own configuration, `APP_BASE_DOMAIN` and `APP_URL`. The first domain you defin in `HEROKU_DEPLOY_ZONES` will be considered your base domain as you can only have one. The first subdomain of your first domain is considered your `APP_URL`. We also use the pull request number to keep review apps unique. Pull request numbers are provided by Heroku as environment variables.
+Two additional config vars are added/updated depending on your own configuration, `APP_BASE_DOMAIN` and `APP_URL`. The _first_ domain you define in `HEROKU_DEPLOY_ZONES` will be considered your __base/primary domain__ as you can only have one. The first subdomain of your first domain is considered your `APP_URL`. We also use the pull request number to keep review apps unique. Pull request numbers are provided by Heroku as environment variables.
 
 For example, these will be added to your environment automatically:
 
