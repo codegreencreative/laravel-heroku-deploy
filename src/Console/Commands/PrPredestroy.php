@@ -64,6 +64,10 @@ class PrPredestroy extends Command
                 return 0;
             }
         } catch (LaravelHerokuDeployException $e) {
+            // Report handled exception to bugsnag if installed
+            if (class_exists(\Bugsnag\BugsnagLaravel\Facades\Bugsnag::class)) {
+                \Bugsnag\BugsnagLaravel\Facades\Bugsnag::notifyException($this);
+            }
             return 1;
         }
     }

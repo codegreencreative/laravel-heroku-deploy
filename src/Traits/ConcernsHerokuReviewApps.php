@@ -52,6 +52,13 @@ trait ConcernsHerokuReviewApps
     private $heroku_addon_attachments = [];
 
     /**
+     * Primary domain for this review app
+     *
+     * @var string
+     */
+    private $primary_domain = null;
+
+    /**
      * Switch to add Automated Certificate Management for domains
      *
      * @var boolean
@@ -67,6 +74,7 @@ trait ConcernsHerokuReviewApps
         $this->cloudflare_zones = config('heroku-deploy.cloudflare_zones');
         $this->heroku_addon_attachments = config('heroku-deploy.heroku_addon_attachments');
         $this->enable_acm = config('heroku-deploy.enable_acm');
+        $this->primary_domain = array_keys($this->cloudflare_zones)[0];
 
         parent::__construct();
     }

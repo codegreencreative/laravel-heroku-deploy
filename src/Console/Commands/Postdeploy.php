@@ -69,8 +69,8 @@ class Postdeploy extends Command
             };
             // Update config vars to support the review app
             $response = $this->heroku('patch', sprintf('apps/%s/config-vars', $this->heroku_app_name), [
-                'APP_BASE_DOMAIN' => sprintf('pr-%s.%s', $this->heroku_pr_number, $zones->first()['name']),
-                'APP_URL' => sprintf('https://id.pr-%s.%s', $this->heroku_pr_number, $zones->first()['name']),
+                'APP_BASE_DOMAIN' => sprintf('pr-%s.%s', $this->heroku_pr_number, $this->primary_domain),
+                'APP_URL' => sprintf('https://id.pr-%s.%s', $this->heroku_pr_number, $this->primary_domain),
                 'SESSION_SECURE_COOKIE' => $this->enable_acm ? 'true' : 'false',
                 'SESSION_COOKIE' => sprintf('PR%s_SID', $this->heroku_pr_number)
             ]);
@@ -88,6 +88,10 @@ class Postdeploy extends Command
                 'Content-Type' => 'application/json',
             ]);
         } catch (LaravelHerokuDeployException $e) {
+            // Report handled exception to bugsnag if installed
+            if (class_exists(\Bugsnag\BugsnagLaravel\Facades\Bugsnag::class)) {
+                \Bugsnag\BugsnagLaravel\Facades\Bugsnag::notifyException($this);
+            }
             // Should any of the above requests fail, the build will fail requiring a rebuild
             return 1;
         }
