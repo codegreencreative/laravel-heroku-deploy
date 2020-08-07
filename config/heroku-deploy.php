@@ -31,5 +31,7 @@ return [
     // }
     'heroku_addon_attachments' => json_decode(env('HEROKU_DEPLOY_ADDON_ATTACHMENTS', '[]'), true),
     // Enable automated certificate management in Heroku for each subdomain
-    'enable_acm' => env('HEROKU_DEPLOY_ENABLE_ACM', true)
+    'enable_acm' => env('HEROKU_DEPLOY_ENABLE_ACM', true),
+    // Primary domain for review app
+    'primary_domain' => env('HEROKU_DEPLOY_PRIMARY_DOMAIN', null)
 ];

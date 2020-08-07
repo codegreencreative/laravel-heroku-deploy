@@ -74,9 +74,23 @@ trait ConcernsHerokuReviewApps
         $this->cloudflare_zones = config('heroku-deploy.cloudflare_zones');
         $this->heroku_addon_attachments = config('heroku-deploy.heroku_addon_attachments');
         $this->enable_acm = config('heroku-deploy.enable_acm');
-        $this->primary_domain = array_keys($this->cloudflare_zones)[0];
+        $this->primary_domain = config('heroku-deploy.primary_domain', $this->getPrimaryDomain());
 
         parent::__construct();
+    }
+
+    /**
+     * Find primary domain for review app should one NOT be provided
+     *
+     * @return string | null
+     */
+    public function getPrimaryDomain()
+    {
+        if (is_array($this->cloudflare_zones)) {
+            return array_keys($this->cloudflare_zones)[0];
+        }
+
+        return null;
     }
 
     /**
