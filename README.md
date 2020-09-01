@@ -1,7 +1,7 @@
 [![Latest Version on Packagist](https://img.shields.io/packagist/v/codegreencreative/laravel-heroku-deploy.svg?style=flat-square)](https://packagist.org/packages/codegreencreative/laravel-heroku-deploy)
 [![Total Downloads](https://img.shields.io/packagist/dt/codegreencreative/laravel-heroku-deploy.svg?style=flat-square)](https://packagist.org/packages/codegreencreative/laravel-heroku-deploy)
 
-# Laravel Heroky Deploy
+# Laravel Heroku Deploy
 
 This Laravel 7 package allows you to configure your Heroku Review Apps instance for Laravel applications. You can manage custom domains using Cloudflare, apply Automated Certificate Management (ACM) with Lets Encrypt and update Config Vars using Heroku's `postdeploy` and `pr-predestroy` script events.
 
