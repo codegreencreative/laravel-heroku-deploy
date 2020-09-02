@@ -73,10 +73,14 @@ Add the `postdeploy` and `pr-predestroy` commands to your app.json file.
 
 ```json
 {
-    "scripts": {
-        "postdeploy": "php artisan heroku:postdeploy",
-        "pr-predestroy": "php artisan heroku:pr-predestroy"
-    }, 
+    "environments": {
+        "review": {
+            "scripts": {
+                "postdeploy": "php artisan heroku:postdeploy",
+                "pr-predestroy": "php artisan heroku:pr-predestroy"
+            }
+        }
+    }
 }  
 ```
 
