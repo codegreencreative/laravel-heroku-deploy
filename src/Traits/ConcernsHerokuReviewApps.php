@@ -86,7 +86,7 @@ trait ConcernsHerokuReviewApps
      */
     public function getPrimaryDomain()
     {
-        if (is_array($this->cloudflare_zones)) {
+        if (! empty($this->cloudflare_zones)) {
             return array_keys($this->cloudflare_zones)[0];
         }
 
