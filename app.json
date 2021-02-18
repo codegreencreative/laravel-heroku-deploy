@@ -1,0 +1,29 @@
+{
+  "name": "%1$s-app",
+  "environments": {
+    "test": {
+      "buildpacks": [
+        { "url": "heroku/php" }
+      ],
+      "scripts": {
+        "test-setup": "php artisan migrate --env='testing'",
+        "test": "phpunit"
+      },
+      "addons": [
+        "heroku-redis:hobby-dev --maxmemory_policy allkeys-lru",
+        "heroku-postgresql:hobby-dev"
+      ],
+      "env": {
+        "APP_ENV": "testing",
+        "BCRYPT_ROUNDS": "4",
+        "CACHE_DRIVER": "array",
+        "DB_CONNECTION": "sqlite",
+        "DB_DATABASE": ":memory:",
+        "MAIL_MAILER": "array",
+        "QUEUE_CONNECTION": "sync",
+        "SESSION_DRIVER": "array",
+        "TELESCOPE_ENABLED": "false"
+      }
+    }
+  }
+}

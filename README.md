@@ -3,7 +3,7 @@
 
 # Laravel Heroku Deploy
 
-This Laravel 7 package allows you to configure your Heroku Review Apps instance for Laravel applications. You can manage custom domains using Cloudflare, apply Automated Certificate Management (ACM) with Lets Encrypt and update Config Vars using Heroku's `postdeploy` and `pr-predestroy` script events.
+This Laravel 7+ package allows you to configure your Heroku Review Apps instance for Laravel applications. You can manage custom domains using Cloudflare, apply Automated Certificate Management (ACM) with Lets Encrypt and update Config Vars using Heroku's `postdeploy` and `pr-predestroy` script events.
 
 ## Installation
 
@@ -35,7 +35,7 @@ return [
     // Cloudflare token, get yours here:
     // https://dash.cloudflare.com/profile/api-tokens
     'cloudflare_token' => env('HEROKU_DEPLOY_CLOUDFLARE_TOKEN', null),
-    // Created by Heroku
+    // Created by Heroku, just capture the information
     'app_name' => env('HEROKU_APP_NAME', null),
     'pr_number' => env('HEROKU_PR_NUMBER', null),
     // JSON array containing information on your zones you want to use for this project
