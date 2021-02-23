@@ -81,7 +81,7 @@ Add the `postdeploy` and `pr-predestroy` commands to your app.json file.
             }
         }
     }
-}  
+}
 ```
 
 ## Config Vars
@@ -112,3 +112,7 @@ Any other config vars that need to be added can be done so in your Heroku pipeli
 ## Bug Reporting
 
 If Bugsnag is installed, exceptions will be reported in Bugsnag.
+
+## Todo
+
+- Check logging config for errorlog | bugsnag
