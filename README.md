@@ -116,3 +116,4 @@ If Bugsnag is installed, exceptions will be reported in Bugsnag.
 ## Todo
 
 - Check logging config for errorlog | bugsnag
+- Redirect default herokuapp.com subdomain to root domain
